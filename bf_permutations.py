@@ -1,8 +1,8 @@
-import itertools
+from itertools import ifilter, product
 
-def bf_programs(length, excluded_chars=[","]):
+def gen_programs(length, excluded_chars):
     chars = set([">", "<", "+", "-", "[", "]", ",", "."]) - set(excluded_chars)
-    return itertools.product(chars, repeat=length)
+    return product(chars, repeat=length)
 
 def valid_program(p):
     # Check that we have matching number of parens
@@ -28,16 +28,34 @@ def useful_program(p):
     if p.count("+") == 0 or p.count("-") == 0:
         return False
 
-    for i in xrange(len(p)):
+    for i in xrange(len(p)-1):
         char = p[i]
-        if char == "[" and p[i+1] == "]":
+        next_char = p[i+1]
+
+        if char == "[" and next_char == "]":
+            return False
+
+        if char == ">" and next_char == "<":
+            return False
+
+        if char == "<" and next_char == ">":
+            return False
+
+        if char == "+" and next_char == "-":
+            return False
+
+        if char == "-" and next_char == "+":
             return False
 
     return True
 
+def bf_programs(length, excluded_chars=[",", "."]):
+    return ifilter(useful_program, ifilter(valid_program, gen_programs(length, excluded_chars)))
+
 def main():
-    for p in itertools.ifilter(useful_program, itertools.ifilter(valid_program, bf_programs(5))):
-        print "".join(p)
+    for n in xrange(3, 8):
+        for p in bf_programs(n):
+            print "".join(p)
 
 if __name__ == '__main__':
     main()
